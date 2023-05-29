@@ -1,0 +1,5 @@
+cd ../../Windows/System32
+f:
+cd Kuliah\"Semester 7"\"Tugas Akhir 1 & Seminar"\App
+
+npm i config cors express express-validator jsonwebtoken mongoose node-cron
