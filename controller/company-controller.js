@@ -1,14 +1,10 @@
-const {validationResult} = require('express-validator');
 const Company = require('../models/Company');
 
 exports.createCompany = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { name, address } = req.body;
+    if (!name || !address) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         // Check if company already exists
@@ -26,10 +22,10 @@ exports.createCompany = async (req, res) => {
         });
 
         await company.save();
-        console.log(company);
 
         return res.json({
-            msg: "Companies created successfully"
+            msg: 'Company created successfully',
+            company: company
         });
 
     } catch (error) {
@@ -39,13 +35,10 @@ exports.createCompany = async (req, res) => {
 };
 
 exports.getCompany = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     // See if company exist
     try {
@@ -64,15 +57,13 @@ exports.getCompany = async (req, res) => {
 
 }
 
-exports.updateCompany = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
+exports.editCompany = async (req, res) => {
     const { id, name, address } = req.body;
+    if (!id || !name || !address) {
+        return res.json({ message: "All filled must be required" });
+    }
     const editValue = {name, address};
+
     try {
         const company = await Company.findById(id);
 
@@ -80,9 +71,12 @@ exports.updateCompany = async (req, res) => {
             res.status(404).json({ msg: 'Company not found' })
         }
 
-        await Company.findByIdAndUpdate(id, editValue);
+        const editedCompany = await Company.findByIdAndUpdate(id, editValue);
 
-        res.status(200).json('Company updated successfully');
+        res.status(200).json({
+            msg: 'Company updated successfully',
+            company: editedCompany
+        });
 
     } catch (error) {
         console.log(error);
@@ -91,13 +85,10 @@ exports.updateCompany = async (req, res) => {
 }
 
 exports.deleteCompany = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const {id} = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         let company = await Company.findById(id);
@@ -116,3 +107,7 @@ exports.deleteCompany = async (req, res) => {
     }
 }
 
+exports.getAll = async (req, res) => {
+    const company = await Company.find();
+    res.json(company);
+}

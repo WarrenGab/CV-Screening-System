@@ -1,38 +1,36 @@
-const {validationResult} = require('express-validator');
 const Department = require('../models/Department');
 const Company = require('../models/Company');
 
 exports.createDepartment = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
-    const { name } = req.body;
+    const { name, companyId } = req.body;
+    if (!name || !companyId) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         let department = await Department.findOne({
-            name: { $regex: new RegExp(name, 'i') }
+            name: { $regex: new RegExp(name, 'i') },
+            company: companyId
         });
 
         if (department) {
-            return res.status(400).json({msg: "Company already exist"});
+            return res.status(400).json({msg: "Department already exist"});
         }
 
-        const company = req.user.company;
+        let company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(400).json({msg: "Company doesn't exist"});
+        }
 
         department = new Department({
             name,
-            company
+            company: companyId
         });
 
         await department.save();
         console.log(department);
 
-        return res.json({
-            msg: "Department created successfully"
-        });
+        return res.json({department: department});
 
     } catch (error) {
         console.log(error);
@@ -41,13 +39,10 @@ exports.createDepartment = async (req, res) => {
 }
 
 exports.getDepartment = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { companyId } = req.body;
+    if (!companyId) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const company = await Company.findById(companyId);
@@ -73,13 +68,10 @@ exports.getDepartment = async (req, res) => {
 }
 
 exports.getOneDepartment = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const department = await Department.findById(id);
@@ -97,13 +89,10 @@ exports.getOneDepartment = async (req, res) => {
 }
 
 exports.editDepartment = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id, name } = req.body;
+    if (!id || !name) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const department = await Department.findById(id);
@@ -112,9 +101,12 @@ exports.editDepartment = async (req, res) => {
             return res.status(404).json({msg: "Department does not exist"});
         }
 
-        await Department.findByIdAndUpdate(id, { $set: { name: name }});
+        const editedDepartment = await Department.findByIdAndUpdate(id, { $set: { name: name }}, { new: true });
 
-        res.status(200).json('Department updated successfully');
+        res.status(200).json({
+            msg: 'Department updated successfully',
+            department: editedDepartment
+        });
 
     } catch (error) {
         console.log(error);
@@ -123,13 +115,10 @@ exports.editDepartment = async (req, res) => {
 }
 
 exports.deleteDepartment = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         let department = await Department.findById(id);
@@ -146,4 +135,9 @@ exports.deleteDepartment = async (req, res) => {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
     }
+}
+
+exports.getAll = async (req, res) => {
+    const department = await Department.find();
+    res.json(department);
 }

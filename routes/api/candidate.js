@@ -1,5 +1,4 @@
 const express = require('express');
-const {check} = require('express-validator');
 const candidateController = require('../../controller/candidate-controller');
 const auth = require('../../middleware/auth');
 const upload = require('../../middleware/upload');
@@ -7,60 +6,59 @@ const upload = require('../../middleware/upload');
 const router = express.Router();
 
 // Add Candidates
-router.post('/create-candidate', [
+router.post(
+    '/create-candidate',
     // auth.isAuthenticated,
-    check('name', 'Name is required').not().isEmpty(),
-    check('email', 'Email is required').not().isEmpty(),
-    check('phone', 'Phone is required').not().isEmpty(),
-    check('domicile', 'Domicile is required').not().isEmpty(),
-    check('positionId', 'Position ID is required').not().isEmpty()
-], upload.single('cvFile'), candidateController.createCandidate);
+    upload.single('cvFile'), candidateController.createCandidate
+);
 
 // Get All Candidates from a Position
-router.get('/get-candidate', [
+router.get(
+    '/get-candidate', 
     // auth.isAuthenticated,
-    check('positionId', 'Position ID is required').not().isEmpty()
-], candidateController.getCandidate);
+    candidateController.getCandidate
+);
 
 // Get Specific Candidate from a Position
-router.get('/get-one-candidate', [
+router.get(
+    '/get-one-candidate',
     // auth.isAuthenticated,
-    check('id', 'ID is required').not().isEmpty()
-], candidateController.getOneCandidate);
+    candidateController.getOneCandidate
+);
 
 // Edit Candidate
-router.put('/edit-candidate', [
-    auth.isAuthenticated,
-    check('id', 'ID is required').not().isEmpty(),
-    check('name', 'Name is required').not().isEmpty(),
-    check('email', 'Email is required').not().isEmpty(),
-    check('phone', 'Phone is required').not().isEmpty(),
-    check('domicile', 'Domicile is required').not().isEmpty()
-], candidateController.editCandidate);
+router.put(
+    '/edit-candidate',
+    // auth.isAuthenticated,
+    candidateController.editCandidate
+);
 
 // Score Candidate
-router.put('/score-candidate', [
-    auth.isAuthenticated,
-    check('id', 'ID is required').not().isEmpty(),
-    check('score', 'Score is required').not().isEmpty()
-], candidateController.scoreCandidate);
+router.put(
+    '/score-candidate',
+    // auth.isAuthenticated,
+    candidateController.scoreCandidate
+);
 
 // (un)Qualify Candidate
-router.put('/qualify-candidate',[
-    auth.isAuthenticated,
-    check('id', 'ID is required').not().isEmpty()
-], candidateController.qualifyCandidate);
+router.put(
+    '/qualify-candidate',
+    // auth.isAuthenticated,
+    candidateController.qualifyCandidate
+);
 
-// (un)Favorite Candidate
-router.put('/favorite-candidate', [
-    auth.isAuthenticated,
-    check('id', 'ID is required').not().isEmpty()
-], candidateController.favoriteCandidate);
+// (un)Shortlisted Candidate
+router.put(
+    '/shortlist-candidate',
+    // auth.isAuthenticated,
+    candidateController.shortlistCandidate
+);
 
 // Remove Candidate
-router.delete('/delete-candidate', [
-    auth.isAuthenticated,
-    check('id', 'ID is required').not().isEmpty()
-], candidateController.deleteCandidate);
+router.delete(
+    '/delete-candidate', 
+    // auth.isAuthenticated,
+    candidateController.deleteCandidate
+);
 
 module.exports = router;

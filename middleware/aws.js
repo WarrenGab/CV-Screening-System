@@ -3,30 +3,59 @@ const fs = require("fs");
 const config = require('config');
 
 const AwsS3Service = {
-    async uploadFile(file, filepath, isPublic) {
+    async uploadFile(file, filepath) {
         aws.config.update({ region: config.get('AWS_REGION') });
         const fileContent = fs.readFileSync(file.path);
         const params = {
             Bucket: "cvscreeningsystem",
             Key: filepath,
             Body: fileContent,
-            ContentType: file.mimetype,
+            ContentType: file.mimetype
         };
   
-        // if (isPublic === true) {
-        //     params.ACL = "public-read";
-        // }
         const s3 = new aws.S3({
             accessKeyId: config.get("AWS_ACCESS_KEY_ID"),
             secretAccessKey: config.get("AWS_SECRET_ACCESS_KEY"),
         });
-        
-        s3.upload(params, (err, data) => {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
+
+        try {
+            // Upload file to AWS S3
+            const data = await s3.upload(params).promise();
+            console.log("File uploaded successfully");
+            return data.Location; // Return the uploaded file URL
+        } catch (err) {
+            console.log(err);
+            return null; // Return null if an error occurs
+        }
+    },
+
+    async deleteFile(fileUrl) {
+        // Config
+        aws.config.update({ region: config.get('AWS_REGION') });
+        const params = {
+            Bucket: "cvscreeningsystem",
+            Key: getFileNameFromUrl(fileUrl)
+        }
+        const s3 = new aws.S3({
+            accessKeyId: config.get("AWS_ACCESS_KEY_ID"),
+            secretAccessKey: config.get("AWS_SECRET_ACCESS_KEY"),
+        });
+
+        try {
+            await s3.deleteObject(params).promise();
+            console.log("File deleted successfully");
+            return true;
+        } catch (err) {
+            console.log(err);
+            return false; // Return null if an error occurs
+        }
+    }
+}
+
+function getFileNameFromUrl(fileUrl) {
+    // Extract the file name from the file URL
+    const urlParts = fileUrl.split("/");
+    return urlParts[urlParts.length - 1];
 }
 
 module.exports = AwsS3Service;

@@ -1,4 +1,3 @@
-const {validationResult} = require('express-validator');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('config');
@@ -6,13 +5,10 @@ const User = require('../models/User');
 const Company = require('../models/Company');
 
 exports.createUser = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { name, email, password, phone, companyId } = req.body;
+    if (!name || !email || !password || !phone || !companyId) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         // See if User already exists
@@ -36,7 +32,7 @@ exports.createUser = async (req, res) => {
             email,
             password,
             phone,
-            companyId
+            company: companyId
         });
 
         // Encrypt Password
@@ -59,7 +55,11 @@ exports.createUser = async (req, res) => {
             {expiresIn: 360000},
             (err, token) => {
                 if(err) throw err;
-                res.json({token});
+                res.json({
+                    msg: 'User created successfully',
+                    user,
+                    token
+                });
             }
         );
     } catch (error) {
@@ -69,13 +69,10 @@ exports.createUser = async (req, res) => {
 }
 
 exports.getUser = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         let user = await User.findById(id);
@@ -93,13 +90,10 @@ exports.getUser = async (req, res) => {
 }
 
 exports.editUser = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id, name, email, phone } = req.body;
+    if (!id || !name || !email || !phone) {
+        return res.json({ message: "All filled must be required" });
+    }
     const editValue = { name, email, phone };
 
     try {
@@ -119,9 +113,12 @@ exports.editUser = async (req, res) => {
             }
         }
 
-        await User.findByIdAndUpdate(id, editValue);
+        const editedUser = await User.findByIdAndUpdate(id, editValue);
         
-        res.status(200).json('User updated successfully');
+        res.status(200).json({
+            msg: 'User updated successfully',
+            user: editedUser
+        });
     } catch (error) {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
@@ -129,13 +126,10 @@ exports.editUser = async (req, res) => {
 }
 
 exports.changePassword = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id, password } = req.body;
+    if (!id || !password) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const user = await User.findById(id);
@@ -160,13 +154,10 @@ exports.changePassword = async (req, res) => {
 }
 
 exports.deleteUser = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const user = await User.findById(id);
@@ -182,4 +173,9 @@ exports.deleteUser = async (req, res) => {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
     }
+}
+
+exports.getAll = async (req, res) => {
+    const user = await User.find();
+    res.json(user);
 }

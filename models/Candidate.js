@@ -14,10 +14,6 @@ const CandidateSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    phone: {
-        type: String,
-        required: true
-    },
     domicile: {
         type: String,
         required: true
@@ -27,7 +23,7 @@ const CandidateSchema = new mongoose.Schema({
         min: 0,
         max: 100
     },
-    isQualified: {
+    isShortlisted: {
         type: Boolean,
         default: false
     },

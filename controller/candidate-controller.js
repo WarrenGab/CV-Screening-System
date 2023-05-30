@@ -1,71 +1,79 @@
-const {validationResult} = require('express-validator');
-// const { v4: uuidv4 } = require('uuid');
-// const s3 = require('../config/aws');
 const fs = require("fs");
 const AwsS3Service = require('../middleware/aws');
 const Candidate = require('../models/Candidate');
 const Position = require('../models/Position');
 
 exports.createCandidate = async (req, res) => {
-    console.log(req.file);
-    AwsS3Service.uploadFile(req.file, req.file.filename, true);
-    
-    // Delete file from /uploads folder
-    const path = __basedir + "/uploads/" + req.file.filename;
-    fs.unlink(path, (err) => {
-        if (err) {
-            throw new Error(`Fail to Unlink file`);
+    const file = req.file;
+    const { name, email, domicile, positionId } = req.body;
+
+    if (!file || !name || !email || !domicile || !positionId) {
+        return res.json({ message: "All filled must be required" });
+    }
+
+    try {
+        // Check whether candidate already exist
+        const candidate = await Candidate.findOne({
+            email: { $regex: new RegExp(email, 'i') },
+            position: positionId
+        });
+
+        if (candidate){
+            return res.status(400).json({msg: "Candidate already exist"});
         }
-    });
-    res.status(200).json( { file: req.file, body: req.body } );
-    // const errors = validationResult(req);
-    // if(!errors.isEmpty()){
-    //     let ar = errors.array();
-    //     return res.status(400).json({msg: ar[0].msg});
-    // };
 
-    // try {
-    //     // Process the uploaded file
-    //     const file = req.file;
-    //     const { name, email, phone, domicile, positionId } = req.body;
+        // Check whether position exist
+        // const position = await Position.findById(positionId);
 
-    //     if (!name) {
-    //         return res.status(400).json({ msg: "LALALALALALA" });
-    //     }
+        // if (!position) {
+        //     return res.status(404).json({msg: "Position Id does not exist"});
+        // }
 
-    //     const newCandidate = new Candidate({
-    //         cvFile: file.location,
-    //         name,
-    //         email,
-    //         phone,
-    //         domicile,
-    //         positionId
-    //     });
+        // Process the uploaded file
+        const cvFile = await AwsS3Service.uploadFile(req.file, req.file.filename);
+    
+        // Delete file from /uploads folder
+        const path = __basedir + "/uploads/" + req.file.filename;
+        fs.unlink(path, (err) => {
+            if (err) {
+                throw new Error(`Fail to Unlink file`);
+            }
+        });
 
-    //     await newCandidate.save();
+        // Create the candidate
+        const newCandidate = new Candidate({
+            cvFile: cvFile,
+            name,
+            email,
+            domicile,
+            position: positionId
+        });
 
-    //     res.status(200).json({ cvFile: cvFileUrl, candidate: newCandidate });
-    // } catch (error) {
-    //     console.log(error);
-    //     res.status(500).json({msg: "Server Error"});
-    // }
+        await newCandidate.save();
+
+        res.status(200).json({ 
+            msg: 'Candidate created successfully',
+            file: req.file, 
+            candidate: newCandidate 
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({msg: "Server Error"});
+    }
 }
 
 exports.getCandidate = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { positionId } = req.body;
+    if (!positionId) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
-        const position = await Department.findById(positionId);
+        // const position = await Position.findById(positionId);
 
-        if (!position) {
-            return res.status(404).json({msg: "Position Id does not exist"});
-        }
+        // if (!position) {
+        //     return res.status(404).json({msg: "Position Id does not exist"});
+        // }
 
         const candidate = await Candidate.find({
             position: positionId
@@ -84,38 +92,10 @@ exports.getCandidate = async (req, res) => {
 }
 
 exports.getOneCandidate = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
-
-    try {
-        const position = await Position.findById(id);
-
-        if (!position) {
-            return res.status(404).json({msg: "Position does not exist"});
-        }
-
-        res.status(200).json(position);
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({msg: "Server Error"});
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
     }
-}
-
-exports.editCandidate = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
-    const { id, name, email, phone, domicile } = req.body;
-    const editValue = { name, email, phone, domicile };
 
     try {
         const candidate = await Candidate.findById(id);
@@ -124,9 +104,34 @@ exports.editCandidate = async (req, res) => {
             return res.status(404).json({msg: "Candidate does not exist"});
         }
 
-        await Candidate.findByIdAndUpdate(id, editValue);
+        res.status(200).json({ candidate: candidate });
 
-        res.status(200).json('Candidate updated successfully');
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({msg: "Server Error"});
+    }
+}
+
+exports.editCandidate = async (req, res) => {
+    const { id, name, email, domicile } = req.body;
+    if (!id || !name || !email || !domicile) {
+        return res.json({ message: "All filled must be required" });
+    }
+    const editValue = { name, email, domicile };
+
+    try {
+        const candidate = await Candidate.findById(id);
+
+        if (!candidate) {
+            return res.status(404).json({msg: "Candidate does not exist"});
+        }
+
+        const editedCandidate = await Candidate.findByIdAndUpdate(id, editValue);
+
+        res.status(200).json({
+            msg: 'Candidate updated successfully',
+            candidate: editedCandidate
+        });
     } catch (error) {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
@@ -134,13 +139,10 @@ exports.editCandidate = async (req, res) => {
 }
 
 exports.scoreCandidate = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id, score } = req.body;
+    if (!id || !score) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const candidate = await Candidate.findById(id);
@@ -162,13 +164,10 @@ exports.scoreCandidate = async (req, res) => {
 }
 
 exports.qualifyCandidate = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const candidate = await Candidate.findById(id);
@@ -195,14 +194,11 @@ exports.qualifyCandidate = async (req, res) => {
     }
 }
 
-exports.favoriteCandidate = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
+exports.shortlistCandidate = async (req, res) => {
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const candidate = await Candidate.findById(id);
@@ -211,16 +207,16 @@ exports.favoriteCandidate = async (req, res) => {
             return res.status(404).json({msg: "Candidate does not exist"});
         }
 
-        const status = candidate.isFavorite;
+        const status = candidate.isShortlisted;
 
         await Candidate.findByIdAndUpdate(id, {
-            $set: { isFavorite: !status }
+            $set: { isShortlisted: !status }
         });
 
         if (!status) {
-            res.status(200).json("Candidate put into favorite successfully");
+            res.status(200).json("Candidate put into shortlist successfully");
         } else {
-            res.status(200).json("Candidate removed from favorite successfully");
+            res.status(200).json("Candidate removed from shortlist successfully");
         }
 
     } catch (error) {
@@ -230,13 +226,10 @@ exports.favoriteCandidate = async (req, res) => {
 }
 
 exports.deleteCandidate = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const candidate = await Candidate.findById(id);
@@ -244,6 +237,8 @@ exports.deleteCandidate = async (req, res) => {
         if (!candidate) {
             return res.status(404).json({msg: "Candidate does not exist"});
         }
+
+        await AwsS3Service.deleteFile(candidate.cvFile);
 
         await candidate.delete();
 
