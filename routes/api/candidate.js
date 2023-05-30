@@ -61,4 +61,7 @@ router.delete(
     candidateController.deleteCandidate
 );
 
+router.get('/get-all', candidateController.getAll);
+router.get('/delete-all', candidateController.deleteAll);
+
 module.exports = router;

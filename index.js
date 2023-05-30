@@ -27,10 +27,10 @@ global.__basedir = __dirname;
 
 // API Routes
 app.use('/api/user', require('./routes/api/user'));
-// app.use('/api/auth', require('./routes/api/auth'));
+app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/company', require('./routes/api/company'));
 app.use('/api/department', require('./routes/api/department'));
-// app.use('/api/position', require('./routes/api/position'));
+app.use('/api/position', require('./routes/api/position'));
 app.use('/api/candidate', require('./routes/api/candidate'));
 
 // Start the Server

@@ -1,15 +1,11 @@
-const {validationResult} = require('express-validator');
 const Position = require('../models/Position');
 const Department = require('../models/Department');
 
 exports.createPosition = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
-    const { name, education, location, minWorkExp, description, departmentId } = req.body;
+    const { name, education, location, minWorkExp, description, qualification, departmentId } = req.body;
+    if (!name || !education || !location || minWorkExp === undefined || minWorkExp === null || !description || !qualification || !departmentId) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         // Check if position already exists
@@ -22,12 +18,19 @@ exports.createPosition = async (req, res) => {
             return res.status(400).json({msg: "Position already exist"});
         }
 
+        // Check if department exist
+        let department = await Department.findById(departmentId);
+        if (!department) {
+            return res.status(400).json({msg: "Department doesn't exist"});
+        }
+
         position = new Position({
             name,
             education,
             location,
             minWorkExp,
             description,
+            qualification,
             department: departmentId
         });
 
@@ -35,7 +38,8 @@ exports.createPosition = async (req, res) => {
         console.log(position);
 
         return res.json({
-            msg: "Position created successfully"
+            msg: "Position created successfully",
+            position: position
         });
 
     } catch (error) {
@@ -45,13 +49,10 @@ exports.createPosition = async (req, res) => {
 }
 
 exports.getPosition = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { departmentId } = req.body;
+    if (!departmentId) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const department = await Department.findById(departmentId);
@@ -78,13 +79,10 @@ exports.getPosition = async (req, res) => {
 }
 
 exports.getOnePosition = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const position = await Position.findById(id);
@@ -102,14 +100,11 @@ exports.getOnePosition = async (req, res) => {
 }
 
 exports.editPosition = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
-    const { id, name, education, location, minWorkExp, description } = req.body;
-    const editValue = { name, education, location, minWorkExp, description };
+    const { id, name, education, location, minWorkExp, description, qualification } = req.body;
+    if (!id || !name || !education || !location || minWorkExp === undefined || minWorkExp === null || !description || !qualification) {
+        return res.json({ message: "All filled must be required" });
+    }
+    const editValue = { name, education, location, minWorkExp, description, qualification };
 
     try {
         const position = await Position.findById(id);
@@ -118,9 +113,12 @@ exports.editPosition = async (req, res) => {
             return res.status(404).json({msg: "Position does not exist"});
         }
 
-        await Position.findByIdAndUpdate(id, editValue);
+        const editedPosition = await Position.findByIdAndUpdate(id, editValue, { new: true });
 
-        res.status(200).json('Position updated successfully');
+        res.status(200).json({
+            msg: 'Position updated successfully',
+            position: editedPosition
+        });
     } catch (error) {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
@@ -128,13 +126,16 @@ exports.editPosition = async (req, res) => {
 }
 
 exports.editPositionCandidates = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id, uploadedCV, filteredCV, potentialCandidates, qualifiedCandidates } = req.body;
+    if (
+        !id || 
+        uploadedCV === undefined || uploadedCV === null ||
+        filteredCV === undefined || filteredCV === null ||
+        potentialCandidates === undefined || potentialCandidates === null ||
+        qualifiedCandidates === undefined || qualifiedCandidates === null
+    ) {
+        return res.json({ message: "All filled must be required" });
+    }
     const editValue = { uploadedCV, filteredCV, potentialCandidates, qualifiedCandidates };
 
     try {
@@ -144,9 +145,12 @@ exports.editPositionCandidates = async (req, res) => {
             return res.status(404).json({msg: "Position does not exist"});
         }
 
-        await Position.findByIdAndUpdate(id, editValue);
+        const editedPosition = await Position.findByIdAndUpdate(id, editValue, { new: true });
 
-        res.status(200).json("Position's candidates updated successfully");
+        res.status(200).json({
+            msg: 'Position updated successfully',
+            position: editedPosition
+        });
     } catch (error) {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
@@ -154,13 +158,10 @@ exports.editPositionCandidates = async (req, res) => {
 }
 
 exports.resolvePosition = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const position = await Position.findById(id);
@@ -188,13 +189,10 @@ exports.resolvePosition = async (req, res) => {
 }
 
 exports.trashPosition = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         const position = await Position.findById(id);
@@ -207,8 +205,8 @@ exports.trashPosition = async (req, res) => {
 
         await Position.findByIdAndUpdate(id, {
             $set: { 
-                'isTrash.$.isInTrash' : !status,
-                'isTrash.$.removedDate': Date.now
+                'isTrash.isInTrash': !status,
+                'isTrash.removedDate': Date.now()
             }
         });
 
@@ -225,13 +223,10 @@ exports.trashPosition = async (req, res) => {
 }
 
 exports.deletePosition = async (req, res) => {
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        let ar = errors.array();
-        return res.status(400).json({msg: ar[0].msg});
-    };
-
     const { id } = req.body;
+    if (!id) {
+        return res.json({ message: "All filled must be required" });
+    }
 
     try {
         let position = await Position.findById(id);
@@ -248,4 +243,9 @@ exports.deletePosition = async (req, res) => {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
     }
+}
+
+exports.getAll = async (req, res) => {
+    const position = await Position.find();
+    res.json(position);
 }

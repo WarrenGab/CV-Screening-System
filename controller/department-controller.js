@@ -30,7 +30,10 @@ exports.createDepartment = async (req, res) => {
         await department.save();
         console.log(department);
 
-        return res.json({department: department});
+        return res.json({
+            msg: 'Department created successfully',
+            department: department
+        });
 
     } catch (error) {
         console.log(error);

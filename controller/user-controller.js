@@ -113,7 +113,7 @@ exports.editUser = async (req, res) => {
             }
         }
 
-        const editedUser = await User.findByIdAndUpdate(id, editValue);
+        const editedUser = await User.findByIdAndUpdate(id, editValue, { new: true });
         
         res.status(200).json({
             msg: 'User updated successfully',

@@ -21,6 +21,10 @@ const PositionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    qualification: {
+        type: String,
+        required: true
+    },
     uploadedCV: {
         type: Number,
         default: 0

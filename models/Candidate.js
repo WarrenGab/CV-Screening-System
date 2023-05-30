@@ -27,7 +27,7 @@ const CandidateSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    isFavorite: {
+    isQualified: {
         type: Boolean,
         default: false
     },

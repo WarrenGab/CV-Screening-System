@@ -23,11 +23,11 @@ exports.createCandidate = async (req, res) => {
         }
 
         // Check whether position exist
-        // const position = await Position.findById(positionId);
+        const position = await Position.findById(positionId);
 
-        // if (!position) {
-        //     return res.status(404).json({msg: "Position Id does not exist"});
-        // }
+        if (!position) {
+            return res.status(404).json({msg: "Position Id does not exist"});
+        }
 
         // Process the uploaded file
         const cvFile = await AwsS3Service.uploadFile(req.file, req.file.filename);
@@ -69,11 +69,11 @@ exports.getCandidate = async (req, res) => {
     }
 
     try {
-        // const position = await Position.findById(positionId);
+        const position = await Position.findById(positionId);
 
-        // if (!position) {
-        //     return res.status(404).json({msg: "Position Id does not exist"});
-        // }
+        if (!position) {
+            return res.status(404).json({msg: "Position Id does not exist"});
+        }
 
         const candidate = await Candidate.find({
             position: positionId
@@ -126,7 +126,7 @@ exports.editCandidate = async (req, res) => {
             return res.status(404).json({msg: "Candidate does not exist"});
         }
 
-        const editedCandidate = await Candidate.findByIdAndUpdate(id, editValue);
+        const editedCandidate = await Candidate.findByIdAndUpdate(id, editValue, { new: true });
 
         res.status(200).json({
             msg: 'Candidate updated successfully',
@@ -140,7 +140,7 @@ exports.editCandidate = async (req, res) => {
 
 exports.scoreCandidate = async (req, res) => {
     const { id, score } = req.body;
-    if (!id || !score) {
+    if (!id || score === undefined || score === null) {
         return res.json({ message: "All filled must be required" });
     }
 
@@ -247,5 +247,19 @@ exports.deleteCandidate = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({msg: "Server Error"});
+    }
+}
+
+exports.getAll = async (req, res) => {
+    const candidate = await Candidate.find();
+    res.json(candidate);
+}
+exports.deleteAll = async (req, res) => {
+    try {
+        await Candidate.deleteMany(); // Delete all documents from the collection
+        res.status(200).json('All candidates deleted successfully');
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ msg: "Server Error" });
     }
 }

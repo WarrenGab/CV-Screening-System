@@ -71,7 +71,7 @@ exports.editCompany = async (req, res) => {
             res.status(404).json({ msg: 'Company not found' })
         }
 
-        const editedCompany = await Company.findByIdAndUpdate(id, editValue);
+        const editedCompany = await Company.findByIdAndUpdate(id, editValue, { new: true });
 
         res.status(200).json({
             msg: 'Company updated successfully',
