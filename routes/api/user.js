@@ -19,21 +19,21 @@ router.post(
 // Edit User
 router.put(
     '/edit-user',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
     userController.editUser
 );
 
 // Change User Password
 router.put(
     '/change-password',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
     userController.changePassword
 );
 
 // Remove User
 router.delete(
     '/delete-user',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
     userController.deleteUser
 );
 

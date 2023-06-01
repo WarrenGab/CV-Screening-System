@@ -19,12 +19,16 @@ router.get(
 // Edit Company
 router.put(
     '/edit-company', 
+    auth.isAuthenticated,
+    auth.checkCompanyById,
     companyController.editCompany
 );
 
 // Delete Company
 router.delete(
     '/delete-company', 
+    auth.isAuthenticated,
+    auth.checkCompanyById,
     companyController.deleteCompany
 );
 

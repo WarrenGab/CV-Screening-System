@@ -7,35 +7,40 @@ const router = express.Router();
 // Add Department
 router.post(
     '/create-department',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
+    auth.checkDepartmentByCompanyId,
     departmentController.createDepartment
 );
 
 // Get All Departments from a Company
 router.get(
     '/get-department',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
+    auth.checkDepartmentByCompanyId,
     departmentController.getDepartment
 );
 
 // Get Specific Department from a Company
 router.get(
     '/get-one-department',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
+    auth.checkDepartmentById,
     departmentController.getOneDepartment
 );
 
 // Edit Department
 router.put(
     '/edit-department',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
+    auth.checkDepartmentById,
     departmentController.editDepartment
 );
 
 // Remove Department
 router.delete(
     '/delete-department',
-    // auth.isAuthenticated,
+    auth.isAuthenticated,
+    auth.checkDepartmentById,
     departmentController.deleteDepartment
 );
 

@@ -1,60 +1,83 @@
 const fs = require("fs");
 const AwsS3Service = require('../middleware/aws');
+const { convertDocxToPdf } = require('../utils/fileConverter');
 const Candidate = require('../models/Candidate');
 const Position = require('../models/Position');
 
 exports.createCandidate = async (req, res) => {
-    const file = req.file;
-    const { name, email, domicile, positionId } = req.body;
+    const files = req.files;
+    const candidates = req.body.candidates;
 
-    if (!file || !name || !email || !domicile || !positionId) {
-        return res.json({ message: "All filled must be required" });
+    console.log(files);
+    console.log(candidates);
+    console.log(req.body);
+
+    if (!files || files.length === 0 || !candidates || candidates.length === 0) {
+        return res.json({ message: "No files or candidates provided" });
     }
 
     try {
-        // Check whether candidate already exist
-        const candidate = await Candidate.findOne({
-            email: { $regex: new RegExp(email, 'i') },
-            position: positionId
-        });
+        for (let i = 0; i < candidates.length; i++) {
+            // Get candidate and file from array
+            const candidate = candidates[i];
+            const file = files[i];
 
-        if (candidate){
-            return res.status(400).json({msg: "Candidate already exist"});
-        }
+            const { name, email, domicile, positionId } = candidate;
 
-        // Check whether position exist
-        const position = await Position.findById(positionId);
+            console.log(candidate);
 
-        if (!position) {
-            return res.status(404).json({msg: "Position Id does not exist"});
-        }
-
-        // Process the uploaded file
-        const cvFile = await AwsS3Service.uploadFile(req.file, req.file.filename);
-    
-        // Delete file from /uploads folder
-        const path = __basedir + "/uploads/" + req.file.filename;
-        fs.unlink(path, (err) => {
-            if (err) {
-                throw new Error(`Fail to Unlink file`);
+            if (!name || !email || !domicile || !positionId) {
+                return res.status(400).json({ msg: "Invalid candidate details" });
             }
-        });
 
-        // Create the candidate
-        const newCandidate = new Candidate({
-            cvFile: cvFile,
-            name,
-            email,
-            domicile,
-            position: positionId
-        });
+            // Check whether candidate already exist
+            const existingCandidate = await Candidate.findOne({
+                email: { $regex: new RegExp(email, 'i') },
+                position: positionId
+            });
 
-        await newCandidate.save();
+            if (existingCandidate){
+                return res.status(400).json({msg: "Candidate already exist"});
+            }
 
+            // Check whether position exist
+            const position = await Position.findById(positionId);
+
+            if (!position) {
+                return res.status(404).json({msg: "Position Id does not exist"});
+            }
+
+            // Process the uploaded file
+            // let cvFileBuffer = req.file;
+            // if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
+            //     cvFileBuffer = await convertDocxToPdf(req.file, req.file.filename);
+            // }
+            const cvFile = await AwsS3Service.uploadFile(file, file.filename);
+    
+            // Delete file from /uploads folder
+            const path = __basedir + "/uploads/" + file.filename;
+            fs.unlink(path, (err) => {
+                if (err) {
+                    throw new Error(`Fail to Unlink file`);
+                }
+            });
+
+            // Create the candidate
+            const newCandidate = new Candidate({
+                cvFile: cvFile,
+                name,
+                email,
+                domicile,
+                position: positionId
+            });
+
+            await newCandidate.save();
+        }
+        // Successfully created the candidates
         res.status(200).json({ 
             msg: 'Candidate created successfully',
-            file: req.file, 
-            candidate: newCandidate 
+            files: req.files, 
+            candidates: await Candidate.find({ email: { $in: candidates.map(c => c.email) } })
         });
     } catch (error) {
         console.log(error);

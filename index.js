@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
-// const multer = require('multer');
 
 const connectDB = require('./config/db');
 
@@ -11,11 +10,6 @@ const app = express();
 // Connect Database
 connectDB();
 
-// Configure Multer
-// const upload = multer({
-//     storage: multer.memoryStorage(),
-//   });
-
 // Initialize Middleware
 app.use(cors());
 app.use(express.urlencoded({extended: false}));
@@ -23,7 +17,6 @@ app.use(express.json());
 app.use(methodOverride('_method'));
 app.use(bodyParser.json({ extended: true }));
 global.__basedir = __dirname;
-// app.use(upload.single('cvFile'));
 
 // API Routes
 app.use('/api/user', require('./routes/api/user'));
