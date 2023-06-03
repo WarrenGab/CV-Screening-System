@@ -40,7 +40,7 @@ router.put(
 router.delete(
     '/delete-department',
     auth.isAuthenticated,
-    auth.checkDepartmentById,
+    auth.checkDepartmentByIds,
     departmentController.deleteDepartment
 );
 

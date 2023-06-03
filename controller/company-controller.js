@@ -57,6 +57,22 @@ exports.getCompany = async (req, res) => {
 
 }
 
+exports.getAllCompanies = async (req, res) => {
+    try {
+        const company = await Company.find();
+        if (!company) {
+            return res.status(404).json({
+                msg: "Company is empty"
+            });
+        }
+
+        res.status(200).json(company);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({msg: "Server Error"});
+    }
+}
+
 exports.editCompany = async (req, res) => {
     const { id, name, address } = req.body;
     if (!id || !name || !address) {

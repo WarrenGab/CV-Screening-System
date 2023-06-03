@@ -14,12 +14,11 @@ const upload = multer({
     storage: storage,
     fileFilter: function(req, file, callback) {
         if(
-            file.mimetype == "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
             file.mimetype == "application/pdf"
         ) {
             callback(null, true);
         } else {
-            console.log("Only docx & pdf file supported!");
+            console.log("Only pdf file supported!");
             callback(null, false);
         }
     },

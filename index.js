@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 
 const connectDB = require('./config/db');
@@ -10,12 +9,27 @@ const app = express();
 // Connect Database
 connectDB();
 
+// Setup the CORS
+const corsOptions = {
+    origin: '*',
+    credentials: true,
+    optionSuccessStatus: 200
+}
+
+app.use(cors(corsOptions));
+
+app.use(function (req, res, next) {
+    res.header('Access-Control-Allow-Origin', "*");
+    res.header('Access-Control-Allow-Headers', true);
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    next();
+});
+
 // Initialize Middleware
-app.use(cors());
-app.use(express.urlencoded({extended: false}));
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(methodOverride('_method'));
-app.use(bodyParser.json({ extended: true }));
 global.__basedir = __dirname;
 
 // API Routes
@@ -27,7 +41,7 @@ app.use('/api/position', require('./routes/api/position'));
 app.use('/api/candidate', require('./routes/api/candidate'));
 
 // Start the Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
     console.log("Server has started on PORT", String(PORT));

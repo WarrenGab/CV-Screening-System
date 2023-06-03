@@ -118,21 +118,25 @@ exports.editDepartment = async (req, res) => {
 }
 
 exports.deleteDepartment = async (req, res) => {
-    const { id } = req.body;
-    if (!id) {
+    const ids = req.body.ids;
+    if (!ids) {
         return res.json({ message: "All filled must be required" });
     }
 
     try {
-        let department = await Department.findById(id);
+        for (let i = 0; i < ids.length; i++) {
+            // Check department
+            const id = ids[i];
+            let department = await Department.findById(id);
 
-        if (!department) {
-            res.status(404).json({ msg: 'Department not found' })
+            if (!department) {
+                res.status(404).json({ msg: 'Department not found' })
+            }
+            // Delete department
+            await department.delete();
         }
-
-        await department.delete();
-
-        res.status(200).json('Department deleted successfully');
+        // All department deleted successfully
+        res.status(200).json('Departments deleted successfully');
 
     } catch (error) {
         console.log(error);

@@ -189,31 +189,34 @@ exports.resolvePosition = async (req, res) => {
 }
 
 exports.trashPosition = async (req, res) => {
-    const { id } = req.body;
-    if (!id) {
+    const ids = req.body.ids;
+    if (!ids) {
         return res.json({ message: "All filled must be required" });
     }
-
+    let stat = false;
     try {
-        const position = await Position.findById(id);
-
-        if (!position) {
-            return res.status(404).json({msg: "Position does not exist"});
-        }
-
-        const status = position.isTrash.isInTrash;
-
-        await Position.findByIdAndUpdate(id, {
-            $set: { 
-                'isTrash.isInTrash': !status,
-                'isTrash.removedDate': Date.now()
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            // Check position
+            let position = await Position.findById(id);
+            if (!position) {
+                res.status(404).json({ msg: 'Position not found' })
             }
-        });
+            // Change isInTrash status
+            const status = position.isTrash.isInTrash;
+            stat = status;
 
-        if (!status) {
-            res.status(200).json("Position removed successfully");
+            await Position.findByIdAndUpdate(id, {
+                $set: { 
+                    'isTrash.isInTrash': !status,
+                    'isTrash.removedDate': Date.now()
+                }
+            });
+        }
+        if (!stat) {
+            res.status(200).json("Positions removed successfully");
         } else {
-            res.status(200).json("Position restored successfully");
+            res.status(200).json("Positions restored successfully");
         }
 
     } catch (error) {
@@ -223,21 +226,21 @@ exports.trashPosition = async (req, res) => {
 }
 
 exports.deletePosition = async (req, res) => {
-    const { id } = req.body;
-    if (!id) {
+    const ids = req.body.ids;
+    if (!ids) {
         return res.json({ message: "All filled must be required" });
     }
 
     try {
-        let position = await Position.findById(id);
-
-        if (!position) {
-            res.status(404).json({ msg: 'Position not found' })
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            let position = await Position.findById(id);
+            if (!position) {
+                res.status(404).json({ msg: 'Position not found' })
+            }
+            await position.delete()
         }
-
-        await position.delete();
-
-        res.status(200).json('Position deleted successfully');
+        res.status(200).json('Positions deleted successfully');
 
     } catch (error) {
         console.log(error);

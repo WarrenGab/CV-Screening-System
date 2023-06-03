@@ -9,13 +9,16 @@ const router = express.Router();
 router.post(
     '/create-candidate',
     auth.isAuthenticated,
-    upload.array('cvFiles'), candidateController.createCandidate
+    upload.array('cvFiles'), 
+    auth.checkCandidateByCandidates,
+    candidateController.createCandidate
 );
 
 // Get All Candidates from a Position
 router.get(
     '/get-candidate', 
     auth.isAuthenticated,
+    auth.checkCandidateByPositionId,
     candidateController.getCandidate
 );
 
@@ -23,6 +26,7 @@ router.get(
 router.get(
     '/get-one-candidate',
     auth.isAuthenticated,
+    auth.checkCandidateById,
     candidateController.getOneCandidate
 );
 
@@ -30,6 +34,7 @@ router.get(
 router.put(
     '/edit-candidate',
     auth.isAuthenticated,
+    auth.checkCandidateById,
     candidateController.editCandidate
 );
 
@@ -37,6 +42,7 @@ router.put(
 router.put(
     '/score-candidate',
     auth.isAuthenticated,
+    auth.checkCandidateByScores,
     candidateController.scoreCandidate
 );
 
@@ -44,6 +50,7 @@ router.put(
 router.put(
     '/qualify-candidate',
     auth.isAuthenticated,
+    auth.checkCandidateById,
     candidateController.qualifyCandidate
 );
 
@@ -51,6 +58,7 @@ router.put(
 router.put(
     '/shortlist-candidate',
     auth.isAuthenticated,
+    auth.checkCandidateById,
     candidateController.shortlistCandidate
 );
 
@@ -58,6 +66,7 @@ router.put(
 router.delete(
     '/delete-candidate', 
     auth.isAuthenticated,
+    auth.checkCandidateById,
     candidateController.deleteCandidate
 );
 

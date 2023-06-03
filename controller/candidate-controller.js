@@ -1,16 +1,12 @@
 const fs = require("fs");
 const AwsS3Service = require('../middleware/aws');
-const { convertDocxToPdf } = require('../utils/fileConverter');
+const deleteFiles = require('../utils/deleteFiles');
 const Candidate = require('../models/Candidate');
 const Position = require('../models/Position');
 
 exports.createCandidate = async (req, res) => {
     const files = req.files;
     const candidates = req.body.candidates;
-
-    console.log(files);
-    console.log(candidates);
-    console.log(req.body);
 
     if (!files || files.length === 0 || !candidates || candidates.length === 0) {
         return res.json({ message: "No files or candidates provided" });
@@ -27,6 +23,7 @@ exports.createCandidate = async (req, res) => {
             console.log(candidate);
 
             if (!name || !email || !domicile || !positionId) {
+                deleteFiles(files);
                 return res.status(400).json({ msg: "Invalid candidate details" });
             }
 
@@ -37,6 +34,7 @@ exports.createCandidate = async (req, res) => {
             });
 
             if (existingCandidate){
+                deleteFiles(files);
                 return res.status(400).json({msg: "Candidate already exist"});
             }
 
@@ -44,23 +42,12 @@ exports.createCandidate = async (req, res) => {
             const position = await Position.findById(positionId);
 
             if (!position) {
+                deleteFiles(files);
                 return res.status(404).json({msg: "Position Id does not exist"});
             }
 
             // Process the uploaded file
-            // let cvFileBuffer = req.file;
-            // if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
-            //     cvFileBuffer = await convertDocxToPdf(req.file, req.file.filename);
-            // }
             const cvFile = await AwsS3Service.uploadFile(file, file.filename);
-    
-            // Delete file from /uploads folder
-            const path = __basedir + "/uploads/" + file.filename;
-            fs.unlink(path, (err) => {
-                if (err) {
-                    throw new Error(`Fail to Unlink file`);
-                }
-            });
 
             // Create the candidate
             const newCandidate = new Candidate({
@@ -73,6 +60,7 @@ exports.createCandidate = async (req, res) => {
 
             await newCandidate.save();
         }
+        deleteFiles(files);
         // Successfully created the candidates
         res.status(200).json({ 
             msg: 'Candidate created successfully',
@@ -80,6 +68,7 @@ exports.createCandidate = async (req, res) => {
             candidates: await Candidate.find({ email: { $in: candidates.map(c => c.email) } })
         });
     } catch (error) {
+        deleteFiles(files);
         console.log(error);
         res.status(500).json({msg: "Server Error"});
     }
@@ -162,24 +151,33 @@ exports.editCandidate = async (req, res) => {
 }
 
 exports.scoreCandidate = async (req, res) => {
-    const { id, score } = req.body;
-    if (!id || score === undefined || score === null) {
+    const scores = req.body.scores;
+    if (!scores) {
         return res.json({ message: "All filled must be required" });
     }
 
     try {
-        const candidate = await Candidate.findById(id);
+        for (let i = 0; i < scores.length; i++) {
+            // Get id and score
+            const { id, score } = scores[i];
+            if (!id || score === undefined || score === null) {
+                return res.json({ message: "All filled must be required" });
+            }
+            // Check whether candidate exists
+            const candidate = await Candidate.findById(id);
 
-        if (!candidate) {
-            return res.status(404).json({msg: "Candidate does not exist"});
+            if (!candidate) {
+                return res.status(404).json({msg: `Candidate ${id} does not exist`});
+            }
+
+            await Candidate.findByIdAndUpdate(id, {
+                $set: { score: score }
+            });
         }
-
-        await Candidate.findByIdAndUpdate(id, {
-            $set: { score: score }
+        res.status(200).json({
+            msg: "Score updated successfully",
+            candidates: await Candidate.find({ id: { $in: scores.map(c => c.id) } }).select('id score').exec()
         });
-
-        res.status(200).json("Score updated successfully");
-
     } catch (error) {
         console.log(error);
         res.status(500).json({msg: "Server Error"});

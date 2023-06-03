@@ -56,7 +56,7 @@ router.put(
 router.put(
     '/remove-position',
     auth.isAuthenticated,
-    auth.checkPositionById,
+    auth.checkPositionByIds,
     positionController.trashPosition
 );
 
@@ -64,7 +64,7 @@ router.put(
 router.delete(
     '/delete-position',
     auth.isAuthenticated,
-    auth.checkPositionById,
+    auth.checkPositionByIds,
     positionController.deletePosition
 );
 

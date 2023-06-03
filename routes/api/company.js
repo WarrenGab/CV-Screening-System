@@ -16,6 +16,12 @@ router.get(
     companyController.getCompany
 );
 
+// Get All Company
+router.get(
+    '/get-all-company',
+    companyController.getAllCompanies
+);
+
 // Edit Company
 router.put(
     '/edit-company', 
