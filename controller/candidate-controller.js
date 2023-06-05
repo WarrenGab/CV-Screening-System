@@ -246,24 +246,50 @@ exports.shortlistCandidate = async (req, res) => {
     }
 }
 
+// exports.deleteCandidate = async (req, res) => {
+//     const { id } = req.body;
+//     if (!id) {
+//         return res.json({ message: "All filled must be required" });
+//     }
+
+//     try {
+//         const candidate = await Candidate.findById(id);
+
+//         if (!candidate) {
+//             return res.status(404).json({msg: "Candidate does not exist"});
+//         }
+
+//         await AwsS3Service.deleteFile(candidate.cvFile);
+
+//         await candidate.delete();
+
+//         res.status(200).json('Candidate deleted successfully');
+
+//     } catch (error) {
+//         console.log(error);
+//         res.status(500).json({msg: "Server Error"});
+//     }
+// }
+
 exports.deleteCandidate = async (req, res) => {
-    const { id } = req.body;
-    if (!id) {
+    const ids = req.body.ids;
+    if (!ids) {
         return res.json({ message: "All filled must be required" });
     }
-
     try {
-        const candidate = await Candidate.findById(id);
+        for (let i = 0; i < ids.length; i++) {
+            // Check candidate
+            const id = ids[i];
+            let candidate = await Candidate.findById(id);
 
-        if (!candidate) {
-            return res.status(404).json({msg: "Candidate does not exist"});
+            if (!candidate) {
+                res.status(404).json({ msg: 'Candidate not found' })
+            }
+            // Delete candidate
+            await candidate.delete();
         }
-
-        await AwsS3Service.deleteFile(candidate.cvFile);
-
-        await candidate.delete();
-
-        res.status(200).json('Candidate deleted successfully');
+        // All candidates deleted successfully
+        res.status(200).json('Candidates deleted successfully');
 
     } catch (error) {
         console.log(error);
