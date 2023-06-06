@@ -66,7 +66,7 @@ router.put(
 router.delete(
     '/delete-candidate', 
     auth.isAuthenticated,
-    auth.checkCandidateById,
+    auth.checkCandidateByIds,
     candidateController.deleteCandidate
 );
 

@@ -40,7 +40,10 @@ middlewareObj.checkCompanyById = async (req, res, next) => {
 
 middlewareObj.checkDepartmentById = async (req, res, next) => {
     try {
-        const departmentId = req.body.id
+        let departmentId = req.query.id
+        if (!departmentId){
+            departmentId = req.body.id
+        }
         const department = await Department.findById(departmentId);
         if (!department) {
             return res.status(404).json({ msg: 'Department not found.' });
@@ -78,7 +81,10 @@ middlewareObj.checkDepartmentByIds = async (req, res, next) => {
 
 middlewareObj.checkDepartmentByCompanyId = async (req, res, next) => {
     try {
-        const companyId = req.body.companyId;
+        let companyId = req.query.companyId;
+        if (!companyId) {
+            companyId = req.body.companyId;
+        }
         const user = await User.findById(req.user.id);
         if (companyId.toString() !== user.company.toString()){
             return res.status(403).json({ msg: 'You are not authorized to access this department.' });
@@ -91,7 +97,10 @@ middlewareObj.checkDepartmentByCompanyId = async (req, res, next) => {
 
 middlewareObj.checkPositionById = async (req, res, next) => {
     try {
-        const positionId = req.body.id;
+        let positionId = req.query.id;
+        if (!positionId){
+            positionId = req.body.id
+        }
         const position = await Position.findById(positionId);
         if (!position) {
             return res.status(404).json({ msg: 'Position not found.' });
@@ -139,7 +148,10 @@ middlewareObj.checkPositionByIds = async (req, res, next) => {
 
 middlewareObj.checkPositionByDepartmentId = async (req, res, next) => {
     try {
-        const departmentId = req.body.departmentId;
+        let departmentId = req.query.departmentId;
+        if (!departmentId){
+            departmentId = req.body.departmentId;
+        }
         const department = await Department.findById(departmentId);
         if (!department) {
             return res.status(404).json({ msg: 'Deparment not found.' });
@@ -156,7 +168,10 @@ middlewareObj.checkPositionByDepartmentId = async (req, res, next) => {
 
 middlewareObj.checkCandidateById = async (req, res, next) => {
     try {
-        const candidateId = req.body.id;
+        let candidateId = req.query.id;
+        if (!candidateId) {
+            candidateId = req.body.id;
+        }
         const candidate = await Candidate.findById(candidateId);
         if (!candidate) {
             return res.status(404).json({ msg: 'Candidate not found.' });
@@ -181,9 +196,43 @@ middlewareObj.checkCandidateById = async (req, res, next) => {
     }
 }
 
+middlewareObj.checkCandidateByIds = async (req, res, next) => {
+    const ids = req.body.ids;
+    try {
+        const user = await User.findById(req.user.id);
+        // Check candidate
+        for (let i = 0; i < ids.length; i++) {
+            const candidateId = ids[i];
+            const candidate = await Candidate.findById(candidateId);
+            if (!candidate) {
+                return res.status(404).json({ msg: 'Candidate not found.' });
+            }
+            const positionId = candidate.position;
+            const position = await Position.findById(positionId);
+            if (!position) {
+                return res.status(404).json({ msg: 'Position not found.' });
+            }
+            const departmentId = position.department;
+            const department = await Department.findById(departmentId);
+            if (!department) {
+                return res.status(404).json({ msg: 'Department not found.' });
+            }
+            if (department.company.toString() !== user.company.toString()){
+                return res.status(403).json({ msg: `You are not authorized to access candidate ${candidateId}.` });
+            }
+        }
+        next();
+    } catch(err) {
+        res.status(401).json({ msg: 'You are not authorized.' });
+    }
+}
+
 middlewareObj.checkCandidateByPositionId = async (req, res, next) => {
     try {
-        const positionId = req.body.positionId;
+        let positionId = req.query.positionId;
+        if (!positionId) {
+            positionId = req.body.positionId;
+        }
         const position = await Position.findById(positionId);
         if (!position) {
             return res.status(404).json({ msg: 'Position not found.' });
