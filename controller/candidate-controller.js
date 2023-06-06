@@ -75,7 +75,7 @@ exports.createCandidate = async (req, res) => {
 }
 
 exports.getCandidate = async (req, res) => {
-    const { positionId } = req.body;
+    const positionId = req.query.positionId;
     if (!positionId) {
         return res.json({ message: "All filled must be required" });
     }
@@ -104,7 +104,7 @@ exports.getCandidate = async (req, res) => {
 }
 
 exports.getOneCandidate = async (req, res) => {
-    const { id } = req.body;
+    const id = req.query.id;
     if (!id) {
         return res.json({ message: "All filled must be required" });
     }

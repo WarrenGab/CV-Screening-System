@@ -69,7 +69,7 @@ exports.createUser = async (req, res) => {
 }
 
 exports.getUser = async (req, res) => {
-    const { id } = req.body;
+    const id = req.query.id;
     if (!id) {
         return res.json({ message: "All filled must be required" });
     }

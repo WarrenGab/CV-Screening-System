@@ -49,7 +49,7 @@ exports.createPosition = async (req, res) => {
 }
 
 exports.getPosition = async (req, res) => {
-    const { departmentId } = req.body;
+    const departmentId = req.query.departmentId;
     if (!departmentId) {
         return res.json({ message: "All filled must be required" });
     }
@@ -79,7 +79,7 @@ exports.getPosition = async (req, res) => {
 }
 
 exports.getOnePosition = async (req, res) => {
-    const { id } = req.body;
+    const id = req.query.id;
     if (!id) {
         return res.json({ message: "All filled must be required" });
     }

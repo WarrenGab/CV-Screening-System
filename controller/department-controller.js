@@ -42,7 +42,7 @@ exports.createDepartment = async (req, res) => {
 }
 
 exports.getDepartment = async (req, res) => {
-    const { companyId } = req.body;
+    const companyId = req.query.companyId;
     if (!companyId) {
         return res.json({ message: "All filled must be required" });
     }
@@ -71,7 +71,7 @@ exports.getDepartment = async (req, res) => {
 }
 
 exports.getOneDepartment = async (req, res) => {
-    const { id } = req.body;
+    const id = req.query.id;
     if (!id) {
         return res.json({ message: "All filled must be required" });
     }

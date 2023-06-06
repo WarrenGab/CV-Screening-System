@@ -9,26 +9,9 @@ const app = express();
 // Connect Database
 connectDB();
 
-// Setup the CORS
+// Initialize Middleware
 app.use(cors());
 app.options("*", cors());
-// const corsOptions = {
-//     origin: '*',
-//     credentials: true,
-//     optionSuccessStatus: 200
-// }
-
-// app.use(cors(corsOptions));
-
-// app.use(function (req, res, next) {
-//     res.header('Access-Control-Allow-Origin', "*");
-//     res.header('Access-Control-Allow-Headers', true);
-//     res.header('Access-Control-Allow-Credentials', true);
-//     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-//     next();
-// });
-
-// Initialize Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(methodOverride('_method'));
@@ -43,7 +26,7 @@ app.use('/api/position', require('./routes/api/position'));
 app.use('/api/candidate', require('./routes/api/candidate'));
 
 // Start the Server
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log("Server has started on PORT", String(PORT));

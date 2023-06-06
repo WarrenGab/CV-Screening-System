@@ -35,7 +35,7 @@ exports.createCompany = async (req, res) => {
 };
 
 exports.getCompany = async (req, res) => {
-    const { id } = req.body;
+    const id = req.query.id;
     if (!id) {
         return res.json({ message: "All filled must be required" });
     }
