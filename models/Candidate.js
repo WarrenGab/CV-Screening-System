@@ -11,8 +11,7 @@ const CandidateSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     },
     domicile: {
         type: String,

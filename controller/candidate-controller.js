@@ -3,6 +3,8 @@ const AwsS3Service = require('../middleware/aws');
 const deleteFiles = require('../utils/deleteFiles');
 const Candidate = require('../models/Candidate');
 const Position = require('../models/Position');
+const Department = require('../models/Department');
+const Company = require('../models/Company');
 
 exports.createCandidate = async (req, res) => {
     const files = req.files;
@@ -75,27 +77,46 @@ exports.createCandidate = async (req, res) => {
 }
 
 exports.getCandidate = async (req, res) => {
-    const positionId = req.query.positionId;
-    if (!positionId) {
+    const companyId = req.query.companyId;
+    if (!companyId) {
         return res.json({ message: "All filled must be required" });
     }
 
     try {
-        const position = await Position.findById(positionId);
-
-        if (!position) {
-            return res.status(404).json({msg: "Position Id does not exist"});
+        // Check Company
+        const company = await Company.findById(companyId);
+        if (!company) {
+            return res.status(404).json({msg: "Company Id does not exist"});
         }
 
-        const candidate = await Candidate.find({
-            position: positionId
+        // Check Departments
+        const departments = await Department.find({
+            company: company.id
+        });
+        if (!departments || departments.length === 0) {
+            return res.status(404).json({msg: "Department is empty"});
+        }
+        const departmentIds = departments.map((department) => department._id);
+
+        // Check Positions
+        const positions = await Position.find({
+            department: { $in: departmentIds }
+        });
+        if (!positions || positions.length === 0) {
+            return res.status(404).json({msg: "Position is empty"});
+        }
+        const positionIds = positions.map((position) => position._id);
+
+        // Find Candidates
+        const candidates = await Candidate.find({
+            position: { $in: positionIds }
         })
 
-        if (!candidate) {
+        if (!candidates) {
             return res.status(404).json({msg: "Candidate is empty"});
         }
 
-        res.status(200).json(candidate);
+        res.status(200).json(candidates);
 
     } catch (error) {
         console.log(error);

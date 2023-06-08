@@ -38,6 +38,6 @@ router.delete(
     companyController.deleteCompany
 );
 
-router.get('/get-all', companyController.getAll)
+// router.get('/get-all', companyController.getAll);
 
 module.exports = router;

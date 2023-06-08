@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const config = require('config');
 const deleteFiles = require('../utils/deleteFiles');
 const Department = require('../models/Department');
 const Position = require('../models/Position');
@@ -17,24 +16,33 @@ middlewareObj.isAuthenticated = (req, res, next) => {
     }
     // Validate Token
     try {
-        const decoded = jwt.verify(token, config.get('jwtSecret'));
+        const decoded = jwt.verify(token, process.env.jwtSecret);
         req.user = decoded.user;
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
 middlewareObj.checkCompanyById = async (req, res, next) => {
     try {
-        const id = req.body.id;
+        let id = req.query.companyId;
+        if (!id) {
+            id = req.body.id;
+        }
         const user = await User.findById(req.user.id);
         if (id.toString() !== user.company.toString()){
             return res.status(403).json({ msg: 'You are not authorized to access this company.' });
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -54,7 +62,10 @@ middlewareObj.checkDepartmentById = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -75,7 +86,10 @@ middlewareObj.checkDepartmentByIds = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -91,7 +105,10 @@ middlewareObj.checkDepartmentByCompanyId = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -116,7 +133,10 @@ middlewareObj.checkPositionById = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -142,7 +162,10 @@ middlewareObj.checkPositionByIds = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -162,7 +185,10 @@ middlewareObj.checkPositionByDepartmentId = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -192,7 +218,10 @@ middlewareObj.checkCandidateById = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -223,7 +252,10 @@ middlewareObj.checkCandidateByIds = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -248,7 +280,10 @@ middlewareObj.checkCandidateByPositionId = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -280,7 +315,10 @@ middlewareObj.checkCandidateByCandidates = async (req, res, next) => {
     } catch(err) {
         deleteFiles(req.files);
         console.log(err);
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 
@@ -311,7 +349,10 @@ middlewareObj.checkCandidateByScores = async (req, res, next) => {
         }
         next();
     } catch(err) {
-        res.status(401).json({ msg: 'You are not authorized.' });
+        res.status(401).json({ 
+            err: err,
+            msg: 'You are not authorized.' 
+        });
     }
 }
 

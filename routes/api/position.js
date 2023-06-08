@@ -12,15 +12,15 @@ router.post(
     positionController.createPosition
 );
 
-// Get All Positions from a Department
+// Get All Positions from a Company
 router.get(
     '/get-position',
     auth.isAuthenticated,
-    auth.checkPositionByDepartmentId,
+    auth.checkCompanyById,
     positionController.getPosition
 );
 
-// Get Specific Position from a Department
+// Get Specific Position
 router.get(
     '/get-one-position',
     auth.isAuthenticated,
@@ -68,6 +68,6 @@ router.delete(
     positionController.deletePosition
 );
 
-router.get('/get-all', positionController.getAll);
+// router.get('/get-all', positionController.getAll);
 
 module.exports = router;

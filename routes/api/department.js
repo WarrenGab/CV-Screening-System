@@ -44,6 +44,6 @@ router.delete(
     departmentController.deleteDepartment
 );
 
-router.get('/get-all', departmentController.getAll);
+// router.get('/get-all', departmentController.getAll);
 
 module.exports = router;

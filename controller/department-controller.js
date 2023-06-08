@@ -2,28 +2,20 @@ const Department = require('../models/Department');
 const Company = require('../models/Company');
 
 exports.createDepartment = async (req, res) => {
-    const { name, companyId } = req.body;
-    if (!name || !companyId) {
+    const { companyId } = req.body;
+    if (!companyId) {
         return res.json({ message: "All filled must be required" });
     }
 
     try {
-        let department = await Department.findOne({
-            name: { $regex: new RegExp(name, 'i') },
-            company: companyId
-        });
-
-        if (department) {
-            return res.status(400).json({msg: "Department already exist"});
-        }
-
-        let company = await Company.findById(companyId);
+        const company = await Company.findById(companyId);
         if (!company) {
             return res.status(400).json({msg: "Company doesn't exist"});
         }
 
-        department = new Department({
-            name,
+        const name = "";
+        const department = new Department({
+            name: name,
             company: companyId
         });
 
@@ -98,10 +90,19 @@ exports.editDepartment = async (req, res) => {
     }
 
     try {
+        // Check department Id
         const department = await Department.findById(id);
-
         if (!department) {
             return res.status(404).json({msg: "Department does not exist"});
+        }
+
+        // Check if department name unique
+        const department2 = await Department.findOne({
+            name: { $regex: new RegExp(name, 'i') },
+            company: department.company
+        })
+        if (department2) {
+            return res.status(404).json({msg: "Department name already exist"});
         }
 
         const editedDepartment = await Department.findByIdAndUpdate(id, { $set: { name: name }}, { new: true });

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const methodOverride = require('method-override');
+require('dotenv').config();
 
 const connectDB = require('./config/db');
 
@@ -26,7 +27,7 @@ app.use('/api/position', require('./routes/api/position'));
 app.use('/api/candidate', require('./routes/api/candidate'));
 
 // Start the Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {
     console.log("Server has started on PORT", String(PORT));

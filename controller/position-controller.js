@@ -1,5 +1,6 @@
 const Position = require('../models/Position');
 const Department = require('../models/Department');
+const Company = require('../models/Company')
 
 exports.createPosition = async (req, res) => {
     const { name, education, location, minWorkExp, description, qualification, departmentId } = req.body;
@@ -49,23 +50,31 @@ exports.createPosition = async (req, res) => {
 }
 
 exports.getPosition = async (req, res) => {
-    const departmentId = req.query.departmentId;
-    if (!departmentId) {
+    const companyId = req.query.companyId;
+    if (!companyId) {
         return res.json({ message: "All filled must be required" });
     }
 
     try {
-        const department = await Department.findById(departmentId);
+        const company = await Company.findById(companyId)
+        if (!company) {
+            return res.status(404).json({msg: "Company Id does not exist"});
+        }
+        const departments = await Department.find({
+            company: company.id
+        });
 
-        if (!department) {
-            return res.status(404).json({msg: "Department Id does not exist"});
+        if (!departments || departments.length === 0) {
+            return res.status(404).json({msg: "Department is empty"});
         }
 
+        const departmentIds = departments.map((department) => department._id);
+
         const position = await Position.find({
-            department: departmentId
+            department: { $in: departmentIds }
         })
 
-        if (!position) {
+        if (!position || position.length === 0) {
             return res.status(404).json({msg: "Position is empty"});
         }
 

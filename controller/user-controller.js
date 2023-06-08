@@ -1,6 +1,5 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const config = require('config');
 const User = require('../models/User');
 const Company = require('../models/Company');
 
@@ -51,8 +50,8 @@ exports.createUser = async (req, res) => {
         };
         jwt.sign(
             payload,
-            config.get('jwtSecret'),
-            {expiresIn: 3600},
+            process.env.jwtSecret,
+            {expiresIn: 86400},
             (err, token) => {
                 if(err) throw err;
                 res.json({

@@ -14,11 +14,11 @@ router.post(
     candidateController.createCandidate
 );
 
-// Get All Candidates from a Position
+// Get All Candidates from a Company
 router.get(
     '/get-candidate', 
     auth.isAuthenticated,
-    auth.checkCandidateByPositionId,
+    auth.checkCompanyById,
     candidateController.getCandidate
 );
 
@@ -70,7 +70,7 @@ router.delete(
     candidateController.deleteCandidate
 );
 
-router.get('/get-all', candidateController.getAll);
-router.get('/delete-all', candidateController.deleteAll);
+// router.get('/get-all', candidateController.getAll);
+// router.get('/delete-all', candidateController.deleteAll);
 
 module.exports = router;

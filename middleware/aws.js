@@ -1,10 +1,9 @@
 const aws = require("aws-sdk");
 const fs = require("fs");
-const config = require('config');
 
 const AwsS3Service = {
     async uploadFile(file, filepath) {
-        aws.config.update({ region: config.get('AWS_REGION') });
+        aws.config.update({ region: process.env.AWS_REGION });
         const fileContent = fs.readFileSync(file.path);
         const params = {
             Bucket: "cvscreeningsystem",
@@ -14,8 +13,8 @@ const AwsS3Service = {
         };
   
         const s3 = new aws.S3({
-            accessKeyId: config.get("AWS_ACCESS_KEY_ID"),
-            secretAccessKey: config.get("AWS_SECRET_ACCESS_KEY"),
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         });
 
         try {
@@ -31,14 +30,14 @@ const AwsS3Service = {
 
     async deleteFile(fileUrl) {
         // Config
-        aws.config.update({ region: config.get('AWS_REGION') });
+        aws.config.update({ region: process.env.AWS_REGION });
         const params = {
             Bucket: "cvscreeningsystem",
             Key: getFileNameFromUrl(fileUrl)
         }
         const s3 = new aws.S3({
-            accessKeyId: config.get("AWS_ACCESS_KEY_ID"),
-            secretAccessKey: config.get("AWS_SECRET_ACCESS_KEY"),
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
         });
 
         try {
