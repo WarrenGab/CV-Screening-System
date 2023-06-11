@@ -1,6 +1,9 @@
+const AwsS3Service = require('../middleware/aws');
+const Candidate = require('../models/Candidate');
 const Position = require('../models/Position');
 const Department = require('../models/Department');
-const Company = require('../models/Company')
+const Company = require('../models/Company');
+const User = require('../models/User');
 
 exports.createPosition = async (req, res) => {
     const { name, education, location, minWorkExp, description, qualification, departmentId } = req.body;
@@ -45,21 +48,29 @@ exports.createPosition = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
-exports.getPosition = async (req, res) => {
-    const companyId = req.query.companyId;
-    if (!companyId) {
-        return res.json({ message: "All filled must be required" });
-    }
+exports.getAllPosition = async (req, res) => {
+    const userId = req.user.id;
 
     try {
-        const company = await Company.findById(companyId)
+        // Find User
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({msg: "User does not exist"});
+        }
+        // Find Company
+        const companyId = user.company;
+        const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).json({msg: "Company Id does not exist"});
         }
+        // Find Departments
         const departments = await Department.find({
             company: company.id
         });
@@ -67,22 +78,25 @@ exports.getPosition = async (req, res) => {
         if (!departments || departments.length === 0) {
             return res.status(404).json({msg: "Department is empty"});
         }
-
+        // Find Positions
         const departmentIds = departments.map((department) => department._id);
 
-        const position = await Position.find({
+        const positions = await Position.find({
             department: { $in: departmentIds }
         })
 
-        if (!position || position.length === 0) {
+        if (!positions || positions.length === 0) {
             return res.status(404).json({msg: "Position is empty"});
         }
 
-        res.status(200).json(position);
+        res.status(200).json(positions);
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 
 }
@@ -104,7 +118,10 @@ exports.getOnePosition = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -130,22 +147,23 @@ exports.editPosition = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
 exports.editPositionCandidates = async (req, res) => {
-    const { id, uploadedCV, filteredCV, potentialCandidates, qualifiedCandidates } = req.body;
+    const { id, qualifiedCandidates } = req.body;
     if (
         !id || 
-        uploadedCV === undefined || uploadedCV === null ||
-        filteredCV === undefined || filteredCV === null ||
-        potentialCandidates === undefined || potentialCandidates === null ||
-        qualifiedCandidates === undefined || qualifiedCandidates === null
+        qualifiedCandidates === undefined || 
+        qualifiedCandidates === null
     ) {
         return res.json({ message: "All filled must be required" });
     }
-    const editValue = { uploadedCV, filteredCV, potentialCandidates, qualifiedCandidates };
+    const editValue = { qualifiedCandidates };
 
     try {
         const position = await Position.findById(id);
@@ -162,7 +180,10 @@ exports.editPositionCandidates = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -193,7 +214,10 @@ exports.resolvePosition = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -230,7 +254,10 @@ exports.trashPosition = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -243,17 +270,31 @@ exports.deletePosition = async (req, res) => {
     try {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            // Find Position
             let position = await Position.findById(id);
             if (!position) {
                 res.status(404).json({ msg: 'Position not found' })
             }
-            await position.delete()
+            // Find candidates that are related to the position
+            const candidates = await Candidate.find({ position: position._id });
+            for (let j = 0; j < candidates.length; j++){
+                const candidate = candidates[j];
+                // Delete File from AWS S3
+                await AwsS3Service.deleteFile(candidate.cvFile);
+                // Delete candidate
+                await candidate.delete();
+            }
+
+            await position.delete();
         }
         res.status(200).json('Positions deleted successfully');
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 

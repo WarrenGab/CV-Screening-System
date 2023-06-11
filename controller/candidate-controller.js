@@ -5,6 +5,7 @@ const Candidate = require('../models/Candidate');
 const Position = require('../models/Position');
 const Department = require('../models/Department');
 const Company = require('../models/Company');
+const User = require('../models/User');
 
 exports.createCandidate = async (req, res) => {
     const files = req.files;
@@ -48,6 +49,9 @@ exports.createCandidate = async (req, res) => {
                 return res.status(404).json({msg: "Position Id does not exist"});
             }
 
+            position.uploadedCV += 1;
+            await position.save();
+
             // Process the uploaded file
             const cvFile = await AwsS3Service.uploadFile(file, file.filename);
 
@@ -72,18 +76,25 @@ exports.createCandidate = async (req, res) => {
     } catch (error) {
         deleteFiles(files);
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
-exports.getCandidate = async (req, res) => {
-    const companyId = req.query.companyId;
-    if (!companyId) {
-        return res.json({ message: "All filled must be required" });
-    }
+exports.getAllCandidate = async (req, res) => {
+    const userId = req.user.id;
 
     try {
-        // Check Company
+        // Find User
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({msg: "User does not exist"});
+        }
+        
+        // Find Company
+        const companyId = user.company;
         const company = await Company.findById(companyId);
         if (!company) {
             return res.status(404).json({msg: "Company Id does not exist"});
@@ -120,7 +131,10 @@ exports.getCandidate = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -141,7 +155,10 @@ exports.getOneCandidate = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -167,7 +184,10 @@ exports.editCandidate = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -180,8 +200,8 @@ exports.scoreCandidate = async (req, res) => {
     try {
         for (let i = 0; i < scores.length; i++) {
             // Get id and score
-            const { id, score } = scores[i];
-            if (!id || score === undefined || score === null) {
+            const { id, score, skills } = scores[i];
+            if (!id || score === undefined || score === null || !skills) {
                 return res.json({ message: "All filled must be required" });
             }
             // Check whether candidate exists
@@ -191,17 +211,61 @@ exports.scoreCandidate = async (req, res) => {
                 return res.status(404).json({msg: `Candidate ${id} does not exist`});
             }
 
+            let isQ = false;
+            if (score > 0) {
+                isQ = true;
+            }
+
+            let isScored = false;
+            if (candidate.score || candidate.score === 0) {
+                isScored = true;
+            }
+
+            let isOldQ = false;
+            if (isScored) {
+                if (candidate.score > 0) {
+                    isOldQ = true;
+                }
+            }
+
+            if ((!isScored && isQ) || (isScored && !isOldQ && isQ)) {
+                const updatedPosition = await Position.findByIdAndUpdate(
+                    candidate.position, 
+                    { $inc: { filteredCV: 1 } },
+                    { new: true }
+                );
+    
+                if (!updatedPosition) {
+                    return res.status(404).json({ message: 'Position not found' });
+                }
+            }
+
+            if (isScored && isOldQ && !isQ){
+                const updatedPosition = await Position.findByIdAndUpdate(
+                    candidate.position, 
+                    { $inc: { filteredCV: -1 } },
+                    { new: true }
+                );
+    
+                if (!updatedPosition) {
+                    return res.status(404).json({ message: 'Position not found' });
+                }
+            }
+
             await Candidate.findByIdAndUpdate(id, {
-                $set: { score: score }
+                $set: { score: score, skills: skills }
             });
         }
         res.status(200).json({
             msg: "Score updated successfully",
-            candidates: await Candidate.find({ id: { $in: scores.map(c => c.id) } }).select('id score').exec()
+            candidates: await Candidate.find({ _id: { $in: scores.map(c => c.id) } }).select('id score skills').exec()
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -232,63 +296,31 @@ exports.qualifyCandidate = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
-    }
-}
-
-exports.shortlistCandidate = async (req, res) => {
-    const { id } = req.body;
-    if (!id) {
-        return res.json({ message: "All filled must be required" });
-    }
-
-    try {
-        const candidate = await Candidate.findById(id);
-
-        if (!candidate) {
-            return res.status(404).json({msg: "Candidate does not exist"});
-        }
-
-        const status = candidate.isShortlisted;
-
-        await Candidate.findByIdAndUpdate(id, {
-            $set: { isShortlisted: !status }
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
         });
-
-        if (!status) {
-            res.status(200).json("Candidate put into shortlist successfully");
-        } else {
-            res.status(200).json("Candidate removed from shortlist successfully");
-        }
-
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({msg: "Server Error"});
     }
 }
 
-// exports.deleteCandidate = async (req, res) => {
-//     const { id } = req.body;
-//     if (!id) {
+// exports.sendEmail = async (req, res) => {
+//     const candidates = req.body.ids;
+//     if (!candidates) {
 //         return res.json({ message: "All filled must be required" });
 //     }
-
 //     try {
-//         const candidate = await Candidate.findById(id);
-
-//         if (!candidate) {
-//             return res.status(404).json({msg: "Candidate does not exist"});
+//         for (let i = 0; i < candidates.length; i++) {
+//             const { id, score, skills } = scores[i];
+//             if (!id || score === undefined || score === null || !skills) {
+//                 return res.json({ message: "All filled must be required" });
+//             }
 //         }
-
-//         await AwsS3Service.deleteFile(candidate.cvFile);
-
-//         await candidate.delete();
-
-//         res.status(200).json('Candidate deleted successfully');
-
 //     } catch (error) {
 //         console.log(error);
-//         res.status(500).json({msg: "Server Error"});
+//         res.status(500).json({
+//             msg: "Server Error",
+//             err: error
+//         });
 //     }
 // }
 
@@ -306,6 +338,8 @@ exports.deleteCandidate = async (req, res) => {
             if (!candidate) {
                 res.status(404).json({ msg: 'Candidate not found' })
             }
+            // Delete File from AWS S3
+            await AwsS3Service.deleteFile(candidate.cvFile);
             // Delete candidate
             await candidate.delete();
         }
@@ -314,7 +348,10 @@ exports.deleteCandidate = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 

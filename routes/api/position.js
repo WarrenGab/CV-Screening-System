@@ -14,10 +14,10 @@ router.post(
 
 // Get All Positions from a Company
 router.get(
-    '/get-position',
+    '/get-all-position',
     auth.isAuthenticated,
-    auth.checkCompanyById,
-    positionController.getPosition
+    // auth.checkCompanyById,
+    positionController.getAllPosition
 );
 
 // Get Specific Position
@@ -68,6 +68,6 @@ router.delete(
     positionController.deletePosition
 );
 
-// router.get('/get-all', positionController.getAll);
+router.get('/get-all', positionController.getAll);
 
 module.exports = router;

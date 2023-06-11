@@ -31,9 +31,11 @@ const AwsS3Service = {
     async deleteFile(fileUrl) {
         // Config
         aws.config.update({ region: process.env.AWS_REGION });
+        const filename = getFileNameFromUrl(fileUrl);
+        const decodedFilename = decodeURIComponent(filename);
         const params = {
             Bucket: "cvscreeningsystem",
-            Key: getFileNameFromUrl(fileUrl)
+            Key: decodedFilename
         }
         const s3 = new aws.S3({
             accessKeyId: process.env.AWS_ACCESS_KEY_ID,

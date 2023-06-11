@@ -14,10 +14,10 @@ router.post(
 
 // Get All Departments from a Company
 router.get(
-    '/get-department',
+    '/get-all-department',
     auth.isAuthenticated,
-    auth.checkDepartmentByCompanyId,
-    departmentController.getDepartment
+    // auth.checkDepartmentByCompanyId,
+    departmentController.getAllDepartment
 );
 
 // Get Specific Department from a Company
@@ -44,6 +44,6 @@ router.delete(
     departmentController.deleteDepartment
 );
 
-// router.get('/get-all', departmentController.getAll);
+router.get('/get-all', departmentController.getAll);
 
 module.exports = router;

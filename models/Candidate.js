@@ -22,9 +22,9 @@ const CandidateSchema = new mongoose.Schema({
         min: 0,
         max: 100
     },
-    isShortlisted: {
-        type: Boolean,
-        default: false
+    skills: {
+        type: [String],
+        default: []
     },
     isQualified: {
         type: Boolean,

@@ -63,7 +63,10 @@ exports.createUser = async (req, res) => {
         );
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -84,7 +87,10 @@ exports.getUser = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -120,7 +126,10 @@ exports.editUser = async (req, res) => {
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -148,7 +157,10 @@ exports.changePassword = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -170,7 +182,10 @@ exports.deleteUser = async (req, res) => {
         res.status(200).json('User deleted successfully');
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 

@@ -1,5 +1,9 @@
+const AwsS3Service = require('../middleware/aws');
+const Candidate = require('../models/Candidate');
+const Position = require('../models/Position');
 const Department = require('../models/Department');
 const Company = require('../models/Company');
+const User = require('../models/User');
 
 exports.createDepartment = async (req, res) => {
     const { companyId } = req.body;
@@ -29,23 +33,28 @@ exports.createDepartment = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
-exports.getDepartment = async (req, res) => {
-    const companyId = req.query.companyId;
-    if (!companyId) {
-        return res.json({ message: "All filled must be required" });
-    }
-
+exports.getAllDepartment = async (req, res) => {
+    const userId = req.user.id;
     try {
+        // Find User
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({msg: "User does not exist"});
+        }
+        // Find Company
+        const companyId = user.company;
         const company = await Company.findById(companyId);
-
         if (!company) {
             return res.status(404).json({msg: "Company Id does not exist"});
         }
-
+        // Find Departments
         const department = await Department.find({
             company: companyId
         });
@@ -58,7 +67,10 @@ exports.getDepartment = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -79,7 +91,10 @@ exports.getOneDepartment = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -114,7 +129,10 @@ exports.editDepartment = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 
@@ -133,6 +151,22 @@ exports.deleteDepartment = async (req, res) => {
             if (!department) {
                 res.status(404).json({ msg: 'Department not found' })
             }
+            // Find positions
+            const positions = await Position.find({ department: department._id });
+            for (let j = 0; j < positions.length; j++) {
+                // Delete candidates
+                const position = positions[j];
+                const candidates = await Candidate.find({ position: position._id });
+                for (let k = 0; k < candidates.length; k++) {
+                    const candidate = candidates[k];
+                    // Delete File from AWS S3
+                    await AwsS3Service.deleteFile(candidate.cvFile);
+                    // Delete candidate
+                    await candidate.delete();
+                }
+            }
+            // Delete positions
+            await Position.deleteMany({ department: department._id });
             // Delete department
             await department.delete();
         }
@@ -141,7 +175,10 @@ exports.deleteDepartment = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({msg: "Server Error"});
+        res.status(500).json({
+            msg: "Server Error",
+            err: error
+        });
     }
 }
 

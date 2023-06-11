@@ -37,6 +37,6 @@ router.delete(
     userController.deleteUser
 );
 
-// router.get('/get-all', userController.getAll);
+router.get('/get-all', userController.getAll);
 
 module.exports = router;

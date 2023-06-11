@@ -16,10 +16,10 @@ router.post(
 
 // Get All Candidates from a Company
 router.get(
-    '/get-candidate', 
+    '/get-all-candidate', 
     auth.isAuthenticated,
-    auth.checkCompanyById,
-    candidateController.getCandidate
+    // auth.checkCompanyById,
+    candidateController.getAllCandidate
 );
 
 // Get Specific Candidate from a Position
@@ -54,14 +54,6 @@ router.put(
     candidateController.qualifyCandidate
 );
 
-// (un)Shortlisted Candidate
-router.put(
-    '/shortlist-candidate',
-    auth.isAuthenticated,
-    auth.checkCandidateById,
-    candidateController.shortlistCandidate
-);
-
 // Remove Candidate
 router.delete(
     '/delete-candidate', 
@@ -70,7 +62,7 @@ router.delete(
     candidateController.deleteCandidate
 );
 
-// router.get('/get-all', candidateController.getAll);
-// router.get('/delete-all', candidateController.deleteAll);
+router.get('/get-all', candidateController.getAll);
+router.get('/delete-all', candidateController.deleteAll);
 
 module.exports = router;

@@ -12,8 +12,8 @@ router.post(
 
 // Get Company
 router.get(
-    '/get-company', 
-    companyController.getCompany
+    '/get-one-company', 
+    companyController.getOneCompany
 );
 
 // Get All Company
@@ -38,6 +38,6 @@ router.delete(
     companyController.deleteCompany
 );
 
-// router.get('/get-all', companyController.getAll);
+router.get('/get-all', companyController.getAll);
 
 module.exports = router;

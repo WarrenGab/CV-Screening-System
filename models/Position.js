@@ -33,10 +33,6 @@ const PositionSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    potentialCandidates: {
-        type: Number,
-        default: 0
-    },
     qualifiedCandidates: {
         type: Number,
         default: 0
