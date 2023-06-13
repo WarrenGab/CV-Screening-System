@@ -53,11 +53,11 @@ exports.createCandidate = async (req, res) => {
             await position.save();
 
             // Process the uploaded file
-            const cvFile = await AwsS3Service.uploadFile(file, file.filename);
+            const cvFilename = await AwsS3Service.uploadFile(file, file.filename);
 
             // Create the candidate
             const newCandidate = new Candidate({
-                cvFile: cvFile,
+                cvFilename: cvFilename,
                 name,
                 email,
                 domicile,
@@ -126,8 +126,17 @@ exports.getAllCandidate = async (req, res) => {
         if (!candidates) {
             return res.status(404).json({msg: "Candidate is empty"});
         }
+        // Download Files
+        let cvFiles = [];
+        for (let i = 0; i < candidates.length; i++) {
+            const candidate = candidates[i];
+            cvFiles[i] = await AwsS3Service.downloadFile(candidate.cvFilename);
+        }
 
-        res.status(200).json(candidates);
+        res.status(200).json({
+            cvFiles: cvFiles,
+            candidates: candidates
+        });
 
     } catch (error) {
         console.log(error);
@@ -151,7 +160,12 @@ exports.getOneCandidate = async (req, res) => {
             return res.status(404).json({msg: "Candidate does not exist"});
         }
 
-        res.status(200).json({ candidate: candidate });
+        const cvFile = await AwsS3Service.downloadFile(candidate.cvFilename);
+
+        res.status(200).json({ 
+            candidate: candidate,
+            cvFile: cvFile
+        });
 
     } catch (error) {
         console.log(error);
@@ -303,27 +317,6 @@ exports.qualifyCandidate = async (req, res) => {
     }
 }
 
-// exports.sendEmail = async (req, res) => {
-//     const candidates = req.body.ids;
-//     if (!candidates) {
-//         return res.json({ message: "All filled must be required" });
-//     }
-//     try {
-//         for (let i = 0; i < candidates.length; i++) {
-//             const { id, score, skills } = scores[i];
-//             if (!id || score === undefined || score === null || !skills) {
-//                 return res.json({ message: "All filled must be required" });
-//             }
-//         }
-//     } catch (error) {
-//         console.log(error);
-//         res.status(500).json({
-//             msg: "Server Error",
-//             err: error
-//         });
-//     }
-// }
-
 exports.deleteCandidate = async (req, res) => {
     const ids = req.body.ids;
     if (!ids) {
@@ -367,4 +360,8 @@ exports.deleteAll = async (req, res) => {
         console.log(error);
         res.status(500).json({ msg: "Server Error" });
     }
+}
+exports.downloadFile = async (req, res) => {
+    const cvFile = await AwsS3Service.downloadFile("006d50ec-f94a-4841-aa51-799bfe33cf7f-Ujang Budi_ujangbudi@gmail.com_Kota Jakarta Pusat.pdf");
+    res.send(cvFile);
 }

@@ -62,7 +62,8 @@ router.delete(
     candidateController.deleteCandidate
 );
 
-router.get('/get-all', candidateController.getAll);
-router.get('/delete-all', candidateController.deleteAll);
+// router.get('/get-all', candidateController.getAll);
+// router.get('/delete-all', candidateController.deleteAll);
+// router.get('/download-file', candidateController.downloadFile);
 
 module.exports = router;

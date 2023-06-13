@@ -39,7 +39,6 @@ exports.createPosition = async (req, res) => {
         });
 
         await position.save();
-        console.log(position);
 
         return res.json({
             msg: "Position created successfully",

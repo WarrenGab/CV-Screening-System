@@ -68,6 +68,6 @@ router.delete(
     positionController.deletePosition
 );
 
-router.get('/get-all', positionController.getAll);
+// router.get('/get-all', positionController.getAll);
 
 module.exports = router;

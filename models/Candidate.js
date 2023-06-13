@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const CandidateSchema = new mongoose.Schema({
-    cvFile: {
+    cvFilename: {
         type: String,
         required: true
     },
