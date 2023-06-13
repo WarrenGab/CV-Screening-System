@@ -53,11 +53,11 @@ exports.createCandidate = async (req, res) => {
             await position.save();
 
             // Process the uploaded file
-            const cvFilename = await AwsS3Service.uploadFile(file, file.filename);
+            const cvFile = await AwsS3Service.uploadFile(file, file.filename);
 
             // Create the candidate
             const newCandidate = new Candidate({
-                cvFilename: cvFilename,
+                cvFile: cvFile,
                 name,
                 email,
                 domicile,
@@ -127,14 +127,13 @@ exports.getAllCandidate = async (req, res) => {
             return res.status(404).json({msg: "Candidate is empty"});
         }
         // Download Files
-        let cvFiles = [];
-        for (let i = 0; i < candidates.length; i++) {
-            const candidate = candidates[i];
-            cvFiles[i] = await AwsS3Service.downloadFile(candidate.cvFilename);
-        }
+        // let cvFiles = [];
+        // for (let i = 0; i < candidates.length; i++) {
+        //     const candidate = candidates[i];
+        //     cvFiles[i] = await AwsS3Service.downloadFile(candidate.cvFilename);
+        // }
 
         res.status(200).json({
-            cvFiles: cvFiles,
             candidates: candidates
         });
 
@@ -160,11 +159,10 @@ exports.getOneCandidate = async (req, res) => {
             return res.status(404).json({msg: "Candidate does not exist"});
         }
 
-        const cvFile = await AwsS3Service.downloadFile(candidate.cvFilename);
+        // const cvFile = await AwsS3Service.downloadFile(candidate.cvFilename);
 
         res.status(200).json({ 
-            candidate: candidate,
-            cvFile: cvFile
+            candidate: candidate
         });
 
     } catch (error) {

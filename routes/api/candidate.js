@@ -9,7 +9,7 @@ const router = express.Router();
 router.post(
     '/create-candidate',
     auth.isAuthenticated,
-    upload.array('cvFiles'), 
+    upload.array('cvFiles'),
     auth.checkCandidateByCandidates,
     candidateController.createCandidate
 );
