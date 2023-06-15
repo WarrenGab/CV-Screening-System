@@ -359,7 +359,3 @@ exports.deleteAll = async (req, res) => {
         res.status(500).json({ msg: "Server Error" });
     }
 }
-exports.downloadFile = async (req, res) => {
-    const cvFile = await AwsS3Service.downloadFile("006d50ec-f94a-4841-aa51-799bfe33cf7f-Ujang Budi_ujangbudi@gmail.com_Kota Jakarta Pusat.pdf");
-    res.send(cvFile);
-}

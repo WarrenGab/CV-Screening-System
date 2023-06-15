@@ -18,7 +18,6 @@ router.post(
 router.get(
     '/get-all-candidate', 
     auth.isAuthenticated,
-    // auth.checkCompanyById,
     candidateController.getAllCandidate
 );
 
@@ -64,6 +63,5 @@ router.delete(
 
 // router.get('/get-all', candidateController.getAll);
 // router.get('/delete-all', candidateController.deleteAll);
-// router.get('/download-file', candidateController.downloadFile);
 
 module.exports = router;

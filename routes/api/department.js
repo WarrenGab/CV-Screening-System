@@ -16,7 +16,6 @@ router.post(
 router.get(
     '/get-all-department',
     auth.isAuthenticated,
-    // auth.checkDepartmentByCompanyId,
     departmentController.getAllDepartment
 );
 

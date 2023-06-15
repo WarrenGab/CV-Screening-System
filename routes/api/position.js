@@ -16,7 +16,6 @@ router.post(
 router.get(
     '/get-all-position',
     auth.isAuthenticated,
-    // auth.checkCompanyById,
     positionController.getAllPosition
 );
 

@@ -5,7 +5,6 @@ const AwsS3Service = {
     async uploadFile(file, filepath) {
         aws.config.update({ region: process.env.AWS_REGION });
         const fileContent = fs.readFileSync(file.path);
-        // console.log(file.filename);
         const params = {
             Bucket: "cvscreeningsystem",
             Key: filepath,
