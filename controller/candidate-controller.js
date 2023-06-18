@@ -282,29 +282,28 @@ exports.scoreCandidate = async (req, res) => {
 }
 
 exports.qualifyCandidate = async (req, res) => {
-    const { id } = req.body;
-    if (!id) {
+    const ids = req.body.ids;
+    if (!ids) {
         return res.json({ message: "All filled must be required" });
     }
 
     try {
-        const candidate = await Candidate.findById(id);
+        for (let i = 0; i < ids.length; i++) {
+            // Check candidate
+            const id = ids[i];
+            let candidate = await Candidate.findById(id);
 
-        if (!candidate) {
-            return res.status(404).json({msg: "Candidate does not exist"});
+            if (!candidate) {
+                res.status(404).json({ msg: 'Candidate not found' })
+            }
+            // Change qualified status
+            const status = candidate.isQualified;
+            await Candidate.findByIdAndUpdate(id, {
+                $set: { isQualified: !status }
+            });
         }
-
-        const status = candidate.isQualified;
-
-        await Candidate.findByIdAndUpdate(id, {
-            $set: { isQualified: !status }
-        });
-
-        if (!status) {
-            res.status(200).json("Qualified candidate successfully");
-        } else {
-            res.status(200).json("Unqualified candidate successfully");
-        }
+        // All candidates deleted successfully
+        res.status(200).json('Candidates qualified status changed successfully');
 
     } catch (error) {
         console.log(error);
@@ -320,6 +319,9 @@ exports.deleteCandidate = async (req, res) => {
     if (!ids) {
         return res.json({ message: "All filled must be required" });
     }
+    let positionId;
+    let filteredCtr = 0;
+    let qualifiedCtr = 0;
     try {
         for (let i = 0; i < ids.length; i++) {
             // Check candidate
@@ -329,11 +331,26 @@ exports.deleteCandidate = async (req, res) => {
             if (!candidate) {
                 res.status(404).json({ msg: 'Candidate not found' })
             }
+            // Check whether candidate is filtered
+            if (candidate.score > 0) {
+                filteredCtr += 1;
+            }
+            // Check whether candidate is qualified
+            if (candidate.isQualified == true) {
+                qualifiedCtr += 1;
+            }
+            // Get candidate's position
+            positionId = candidate.position;
             // Delete File from AWS S3
             await AwsS3Service.deleteFile(candidate.cvFile);
             // Delete candidate
             await candidate.delete();
         }
+        // Edit Positions
+        await Position.findByIdAndUpdate(
+            positionId, 
+            { $inc: { uploadedCV: -ids.length, filteredCV: -filteredCtr, qualifiedCandidates: -qualifiedCtr } }
+        );
         // All candidates deleted successfully
         res.status(200).json('Candidates deleted successfully');
 

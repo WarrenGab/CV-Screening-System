@@ -49,7 +49,7 @@ router.put(
 router.put(
     '/qualify-candidate',
     auth.isAuthenticated,
-    auth.checkCandidateById,
+    auth.checkCandidateByIds,
     candidateController.qualifyCandidate
 );
 
