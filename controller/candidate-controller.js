@@ -126,16 +126,8 @@ exports.getAllCandidate = async (req, res) => {
         if (!candidates) {
             return res.status(404).json({msg: "Candidate is empty"});
         }
-        // Download Files
-        // let cvFiles = [];
-        // for (let i = 0; i < candidates.length; i++) {
-        //     const candidate = candidates[i];
-        //     cvFiles[i] = await AwsS3Service.downloadFile(candidate.cvFilename);
-        // }
 
-        res.status(200).json({
-            candidates: candidates
-        });
+        res.status(200).json(candidates);
 
     } catch (error) {
         console.log(error);
@@ -161,9 +153,7 @@ exports.getOneCandidate = async (req, res) => {
 
         // const cvFile = await AwsS3Service.downloadFile(candidate.cvFilename);
 
-        res.status(200).json({ 
-            candidate: candidate
-        });
+        res.status(200).json(candidate);
 
     } catch (error) {
         console.log(error);
