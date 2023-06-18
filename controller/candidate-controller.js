@@ -127,7 +127,9 @@ exports.getAllCandidate = async (req, res) => {
             return res.status(404).json({msg: "Candidate is empty"});
         }
 
-        res.status(200).json(candidates);
+        res.status(200).json({
+            candidates: candidates
+        });
 
     } catch (error) {
         console.log(error);
@@ -153,7 +155,9 @@ exports.getOneCandidate = async (req, res) => {
 
         // const cvFile = await AwsS3Service.downloadFile(candidate.cvFilename);
 
-        res.status(200).json(candidate);
+        res.status(200).json({ 
+            candidate: candidate
+        });
 
     } catch (error) {
         console.log(error);
